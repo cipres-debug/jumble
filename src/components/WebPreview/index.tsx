@@ -11,17 +11,11 @@ import { Skeleton } from '../ui/skeleton'
 export default function WebPreview({
   url,
   className,
-  mustLoad,
-  fallbackImage
+  mustLoad
 }: {
   url: string
   className?: string
   mustLoad?: boolean
-  /**
-   * Thumbnail to use when the page exposes no og:image, or when its metadata
-   * can't be fetched at all (no proxy configured, or the site blocks it).
-   */
-  fallbackImage?: string
 }) {
   const { autoLoadMedia } = useContentPolicy()
   const { allowInsecureConnection } = useUserPreferences()
@@ -31,8 +25,7 @@ export default function WebPreview({
     (autoLoadMedia || Boolean(mustLoad)) &&
     (allowInsecureConnection || !isInsecureUrl(url))
   const { metadata, isLoading } = useFetchWebMetadata(url, shouldShow && isNearViewport)
-  const { title, description } = metadata
-  const image = metadata.image || fallbackImage
+  const { title, description, image } = metadata
 
   const { hostname, displayUrl } = useMemo(() => {
     try {

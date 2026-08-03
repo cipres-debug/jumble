@@ -1,6 +1,6 @@
 import { useSecondaryPage } from '@/PageManager'
 import { ExtendedKind } from '@/constants'
-import { getEventAuthorPubkey, getEventFeedTimestamp, getParentStuff } from '@/lib/event'
+import { getEventAuthorPubkey, getParentStuff } from '@/lib/event'
 import { toExternalContent, toNote } from '@/lib/link'
 import { generateBech32IdFromATag, generateBech32IdFromETag, tagNameEquals } from '@/lib/tag'
 import { useScreenSize } from '@/providers/ScreenSizeProvider'
@@ -15,7 +15,6 @@ import NoteContent from '../NoteContent'
 import NoteOptions from '../NoteOptions'
 import OpBadge from '../OpBadge'
 import ParentNotePreview from '../ParentNotePreview'
-import PowBadge from '../PowBadge'
 import ProtectedBadge from '../ProtectedBadge'
 import TranslateButton from '../TranslateButton'
 import TrustScoreBadge from '../TrustScoreBadge'
@@ -57,7 +56,14 @@ export default function Note({
     const eTag = event.tags.findLast(tagNameEquals('e'))
     return eTag ? generateBech32IdFromETag(eTag) : undefined
   }, [event])
-  const displayTimestamp = useMemo(() => getEventFeedTimestamp(event), [event])
+  const displayTimestamp = useMemo(() => {
+    if (event.kind === kinds.LongFormArticle) {
+      const publishedAt = event.tags.find(tagNameEquals('published_at'))?.[1]
+      const parsed = publishedAt ? parseInt(publishedAt, 10) : NaN
+      if (Number.isFinite(parsed)) return parsed
+    }
+    return event.created_at
+  }, [event])
 
   return (
     <div className={className}>
@@ -85,7 +91,6 @@ export default function Note({
                   className="shrink-0"
                   short={isSmallScreen}
                 />
-                <PowBadge event={event} className="shrink-0" />
               </div>
             </div>
           </div>

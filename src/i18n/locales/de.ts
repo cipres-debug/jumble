@@ -1160,9 +1160,6 @@ export default {
     Anonymous: 'Anonym',
     'Anonymous reply hint':
       'Verwendet eine neue einmalige Nostr-Identität. Dein Konto erscheint nicht im Event, Relays und Netzwerkbeobachter können deine Aktivitäten jedoch möglicherweise weiterhin zuordnen.',
-    'One-time identity': 'Einmalige Identität',
-    'Try loading more': 'Versuchen, mehr zu laden',
-    'Show less': 'Weniger anzeigen',
-    'Remember this difficulty': 'Diese Schwierigkeit merken'
+    'One-time identity': 'Einmalige Identität'
   }
 }

@@ -45,7 +45,7 @@ export default function YoutubeEmbeddedPlayer({
   return <Player videoId={videoId} isShort={isShort} className={className} />
 }
 
-export function parseYoutubeUrl(url: string) {
+function parseYoutubeUrl(url: string) {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
     /youtube\.com\/watch\?.*v=([^&\n?#]+)/,

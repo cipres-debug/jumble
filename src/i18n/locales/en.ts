@@ -27,6 +27,15 @@ export default {
     date: '{{timestamp, date}}',
     Follow: 'Follow',
     Unfollow: 'Unfollow',
+    'Follow privately': 'Follow privately',
+    'Following privately': 'Following privately',
+    'Make follow private': 'Make follow private',
+    'Make follow public': 'Make follow public',
+    'Convert public follows to private': 'Convert public follows to private',
+    'Converted public follows to private': 'Converted public follows to private',
+    'No public follows to convert': 'No public follows to convert',
+    'Private follows unavailable while follow list stores relay preferences in content':
+      'Private follows unavailable while follow list stores relay preferences in content',
     'Follow failed': 'Follow failed',
     'Unfollow failed': 'Unfollow failed',
     'show new notes': 'show new notes',
@@ -1133,9 +1142,6 @@ export default {
     Anonymous: 'Anonymous',
     'Anonymous reply hint':
       'Uses a new one-time Nostr identity. Your account will not appear in the event, but relays and network observers may still correlate your activity.',
-    'One-time identity': 'One-time identity',
-    'Try loading more': 'Try loading more',
-    'Show less': 'Show less',
-    'Remember this difficulty': 'Remember this difficulty'
+    'One-time identity': 'One-time identity'
   }
 }

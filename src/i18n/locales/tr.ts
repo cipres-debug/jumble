@@ -1145,9 +1145,6 @@ export default {
     Anonymous: 'Anonim',
     'Anonymous reply hint':
       'Yeni ve tek kullanımlık bir Nostr kimliği kullanır. Hesabınız etkinlikte görünmez, ancak röleler ve ağ gözlemcileri etkinliğinizi yine de ilişkilendirebilir.',
-    'One-time identity': 'Tek kullanımlık kimlik',
-    'Try loading more': 'Daha fazlasını yüklemeyi dene',
-    'Show less': 'Daha az göster',
-    'Remember this difficulty': 'Bu zorluk seviyesini hatırla'
+    'One-time identity': 'Tek kullanımlık kimlik'
   }
 }

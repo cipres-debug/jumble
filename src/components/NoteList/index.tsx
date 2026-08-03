@@ -3,19 +3,12 @@ import { Button } from '@/components/ui/button'
 import { SPAMMER_PERCENTILE_THRESHOLD } from '@/constants'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import {
-  compareEvents,
   getEventAuthorPubkey,
-  getEventFeedTimestamp,
   getEventKey,
-  getSafeFeedItemCount,
   getKeyFromTag,
   isMentioningMutedUsers,
-  isReplyNoteEvent,
-  partitionIncomingFeedEvents,
-  sortRevisionOrderedFeedEventsDesc,
-  sortRevisionOrderedFeedItemsDesc
+  isReplyNoteEvent
 } from '@/lib/event'
-import { isRelayDisconnectReason } from '@/lib/relay'
 import { tagNameEquals } from '@/lib/tag'
 import { mergeTimelines } from '@/lib/timeline'
 import { useContentPolicy } from '@/providers/ContentPolicyProvider'
@@ -109,12 +102,7 @@ const NoteList = forwardRef<
     >([])
     const [filteredNewEvents, setFilteredNewEvents] = useState<Event[]>([])
     const [refreshCount, setRefreshCount] = useState(0)
-    const [reachedTimelineEnd, setReachedTimelineEnd] = useState(false)
     const topRef = useRef<HTMLDivElement | null>(null)
-    const eventsRef = useRef(events)
-    eventsRef.current = events
-    const filteredNotesRef = useRef(filteredNotes)
-    filteredNotesRef.current = filteredNotes
     const sinceRef = useRef<number | undefined>(undefined)
     sinceRef.current = newEvents.length
       ? newEvents[0].created_at + 1
@@ -248,12 +236,11 @@ const NoteList = forwardRef<
           ? SPAMMER_PERCENTILE_THRESHOLD
           : (trustScoreThreshold ?? 0)
         if (!_trustScoreThreshold || _trustScoreThreshold <= 0) {
-          const notes = filteredEvents.map((evt, i) => {
-            const key = keys[i]
-            return { key, event: evt, reposters: Array.from(repostersMap.get(key) ?? []) }
-          })
           setFilteredNotes(
-            areAlgoRelays ? notes : sortRevisionOrderedFeedItemsDesc(notes, ({ event }) => event)
+            filteredEvents.map((evt, i) => {
+              const key = keys[i]
+              return { key, event: evt, reposters: Array.from(repostersMap.get(key) ?? []) }
+            })
           )
           return
         }
@@ -275,11 +262,7 @@ const NoteList = forwardRef<
           reposters: string[]
         }[]
 
-        setFilteredNotes(
-          areAlgoRelays
-            ? _filteredNotes
-            : sortRevisionOrderedFeedItemsDesc(_filteredNotes, ({ event }) => event)
-        )
+        setFilteredNotes(_filteredNotes)
       }
 
       setFiltering(true)
@@ -291,8 +274,7 @@ const NoteList = forwardRef<
       hideReplies,
       hideSpam,
       meetsMinTrustScore,
-      trustScoreThreshold,
-      areAlgoRelays
+      trustScoreThreshold
     ])
 
     useEffect(() => {
@@ -320,9 +302,7 @@ const NoteList = forwardRef<
           ? SPAMMER_PERCENTILE_THRESHOLD
           : (trustScoreThreshold ?? 0)
         if (!_trustScoreThreshold || _trustScoreThreshold <= 0) {
-          setFilteredNewEvents(
-            areAlgoRelays ? filteredEvents : sortRevisionOrderedFeedEventsDesc(filteredEvents)
-          )
+          setFilteredNewEvents(filteredEvents)
           return
         }
 
@@ -341,20 +321,10 @@ const NoteList = forwardRef<
             })
           )
         ).filter(Boolean) as Event[]
-        setFilteredNewEvents(
-          areAlgoRelays ? _filteredNotes : sortRevisionOrderedFeedEventsDesc(_filteredNotes)
-        )
+        setFilteredNewEvents(_filteredNotes)
       }
       processNewEvents()
-    }, [
-      newEvents,
-      shouldHideEvent,
-      isSpammer,
-      hideSpam,
-      meetsMinTrustScore,
-      trustScoreThreshold,
-      areAlgoRelays
-    ])
+    }, [newEvents, shouldHideEvent, isSpammer, hideSpam, meetsMinTrustScore, trustScoreThreshold])
 
     const scrollToTop = (behavior: ScrollBehavior = 'instant') => {
       setTimeout(() => {
@@ -378,7 +348,6 @@ const NoteList = forwardRef<
       setEvents([])
       setStoredEvents([])
       setNewEvents([])
-      setReachedTimelineEnd(false)
     }, [JSON.stringify(subRequests), refreshCount, JSON.stringify(showKinds)])
 
     useEffect(() => {
@@ -416,45 +385,9 @@ const NoteList = forwardRef<
           })
         )
 
-        const handleNewEvents = (incomingEvents: Event[]) => {
-          let recentEvents = incomingEvents
-          if (!areAlgoRelays) {
-            const visibleHeadEvent = filteredNotesRef.current[0]?.event
-            let feedHeadTimestamp = visibleHeadEvent
-              ? getEventFeedTimestamp(visibleHeadEvent)
-              : undefined
-            if (feedHeadTimestamp === undefined) {
-              const fallbackHeadEvent = sortRevisionOrderedFeedEventsDesc(eventsRef.current)[0]
-              feedHeadTimestamp = fallbackHeadEvent
-                ? getEventFeedTimestamp(fallbackHeadEvent)
-                : undefined
-            }
-            const partitioned = partitionIncomingFeedEvents(incomingEvents, feedHeadTimestamp)
-            recentEvents = partitioned.recentEvents
-
-            if (partitioned.historicalEvents.length) {
-              const historicalEventsByKey = new Map<string, Event>()
-              partitioned.historicalEvents.forEach((event) => {
-                const key = getEventKey(event)
-                const current = historicalEventsByKey.get(key)
-                if (!current || compareEvents(event, current) > 0) {
-                  historicalEventsByKey.set(key, event)
-                }
-              })
-              setEvents((oldEvents) => mergeTimelines([partitioned.historicalEvents, oldEvents]))
-              setNewEvents((oldEvents) =>
-                oldEvents.filter((event) => {
-                  const historicalEvent = historicalEventsByKey.get(getEventKey(event))
-                  return !historicalEvent || compareEvents(event, historicalEvent) > 0
-                })
-              )
-            }
-          }
-
-          if (!recentEvents.length) return
-
+        const handleNewEvents = (newEvents: Event[]) => {
           if (showNewNotesDirectlyRef.current) {
-            setEvents((oldEvents) => mergeTimelines([recentEvents, oldEvents]))
+            setEvents((oldEvents) => mergeTimelines([newEvents, oldEvents]))
           } else {
             const isAtTop = (() => {
               if (!topRef.current) return true
@@ -463,9 +396,9 @@ const NoteList = forwardRef<
             })()
 
             if (isAtTop) {
-              setEvents((oldEvents) => mergeTimelines([recentEvents, oldEvents]))
+              setEvents((oldEvents) => mergeTimelines([newEvents, oldEvents]))
             } else {
-              setNewEvents((oldEvents) => mergeTimelines([recentEvents, oldEvents]))
+              setNewEvents((oldEvents) => mergeTimelines([newEvents, oldEvents]))
             }
           }
         }
@@ -493,7 +426,18 @@ const NoteList = forwardRef<
             },
             onClose: (url, reason) => {
               if (!showRelayCloseReason) return
-              if (isRelayDisconnectReason(reason)) return
+              // ignore reasons from nostr-tools
+              if (
+                [
+                  'closed by caller',
+                  'relay connection errored',
+                  'relay connection closed',
+                  'pingpong timed out',
+                  'relay connection closed by us'
+                ].includes(reason)
+              ) {
+                return
+              }
 
               toast.error(`${url}: ${reason}`)
             }
@@ -522,42 +466,18 @@ const NoteList = forwardRef<
         LIMIT
       )
       if (newEvents.length === 0) {
-        setReachedTimelineEnd(true)
         return false
       }
-      setReachedTimelineEnd(false)
       setEvents((oldEvents) => [...oldEvents, ...newEvents])
       return true
     }, [timelineKey, events, areAlgoRelays])
 
-    const relayCreatedAtCursor = events.length ? events[events.length - 1].created_at : undefined
-    const displayableNoteCount = useMemo(
-      () =>
-        areAlgoRelays || reachedTimelineEnd
-          ? filteredNotes.length
-          : getSafeFeedItemCount(filteredNotes, relayCreatedAtCursor, ({ event }) => event),
-      [filteredNotes, relayCreatedAtCursor, areAlgoRelays, reachedTimelineEnd]
-    )
-
-    const {
-      visibleItems,
-      shouldShowLoadingIndicator,
-      bottomRef,
-      retryLoadMore,
-      setHasMore,
-      setShowCount
-    } = useInfiniteScroll({
+    const { visibleItems, shouldShowLoadingIndicator, bottomRef } = useInfiniteScroll({
       items: filteredNotes,
-      itemCount: displayableNoteCount,
       showCount: SHOW_COUNT,
       onLoadMore: handleLoadMore,
       initialLoading
     })
-
-    useEffect(() => {
-      setHasMore(true)
-      setShowCount(SHOW_COUNT)
-    }, [JSON.stringify(subRequests), refreshCount, JSON.stringify(showKinds)])
 
     const showNewEvents = () => {
       setEvents((oldEvents) => mergeTimelines([newEvents, oldEvents]))
@@ -583,14 +503,7 @@ const NoteList = forwardRef<
         {shouldShowLoadingIndicator || filtering || initialLoading ? (
           <NoteCardLoadingSkeleton />
         ) : events.length ? (
-          <div className="mt-2 flex flex-col items-center gap-3">
-            <div className="text-muted-foreground text-center text-sm">{t('no more notes')}</div>
-            {!areAlgoRelays && (
-              <Button variant="outline" size="sm" onClick={retryLoadMore}>
-                {t('Try loading more')}
-              </Button>
-            )}
-          </div>
+          <div className="text-muted-foreground mt-2 text-center text-sm">{t('no more notes')}</div>
         ) : (
           <div className="mt-8 flex w-full flex-col items-center justify-center gap-4">
             <div className="text-muted-foreground text-center">

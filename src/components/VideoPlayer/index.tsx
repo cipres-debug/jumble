@@ -34,21 +34,17 @@ export default function VideoPlayer({
 
     if (!video || !container || error) return
 
-    let autoPlayTimeout: ReturnType<typeof setTimeout> | undefined
     const observer = new IntersectionObserver(
       ([entry]) => {
-        mediaManager.cancelAutoPlay(video)
         if (entry.isIntersecting && autoplay) {
-          clearTimeout(autoPlayTimeout)
-          autoPlayTimeout = setTimeout(() => {
+          setTimeout(() => {
             if (isInViewport(container)) {
-              mediaManager.autoPlay(video, () => isInViewport(container))
+              mediaManager.autoPlay(video)
             }
           }, 200)
         }
 
         if (!entry.isIntersecting) {
-          clearTimeout(autoPlayTimeout)
           mediaManager.pause(video)
         }
       },
@@ -58,9 +54,7 @@ export default function VideoPlayer({
     observer.observe(container)
 
     return () => {
-      clearTimeout(autoPlayTimeout)
-      mediaManager.cancelAutoPlay(video)
-      observer.disconnect()
+      observer.unobserve(container)
     }
   }, [autoplay, error])
 
@@ -125,13 +119,7 @@ export default function VideoPlayer({
         onTouchStart={handleMediaInteraction}
         onClick={handleMediaInteraction}
         onPlay={(event) => {
-          mediaManager.registerPlaying(event.currentTarget)
-        }}
-        onPause={(event) => {
-          mediaManager.registerPaused(event.currentTarget)
-        }}
-        onEnded={(event) => {
-          mediaManager.registerPaused(event.currentTarget)
+          mediaManager.play(event.currentTarget)
         }}
         onLoadedMetadata={(event) => {
           const v = event.currentTarget

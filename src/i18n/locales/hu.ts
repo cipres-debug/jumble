@@ -1145,9 +1145,6 @@ export default {
     Anonymous: 'Névtelen',
     'Anonymous reply hint':
       'Egy új, egyszer használatos Nostr-identitást használ. A fiókod nem jelenik meg az eseményben, de a relék és a hálózati megfigyelők továbbra is összekapcsolhatják a tevékenységeidet.',
-    'One-time identity': 'Egyszer használatos identitás',
-    'Try loading more': 'Próbálj többet betölteni',
-    'Show less': 'Kevesebb',
-    'Remember this difficulty': 'Jegyezze meg ezt a nehézséget'
+    'One-time identity': 'Egyszer használatos identitás'
   }
 }

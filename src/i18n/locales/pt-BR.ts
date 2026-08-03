@@ -27,6 +27,15 @@ export default {
     date: '{{timestamp, date}}',
     Follow: 'Seguir',
     Unfollow: 'Deixar de seguir',
+    'Follow privately': 'Seguir em privado',
+    'Following privately': 'Seguindo em privado',
+    'Make follow private': 'Tornar o seguir privado',
+    'Make follow public': 'Tornar o seguir público',
+    'Convert public follows to private': 'Converter seguidores públicos em privados',
+    'Converted public follows to private': 'Seguidores públicos convertidos em privados',
+    'No public follows to convert': 'Nenhum seguir público para converter',
+    'Private follows unavailable while follow list stores relay preferences in content':
+      'Seguir em privado indisponível enquanto a lista de seguir guarda preferências de relays no conteúdo',
     'Follow failed': 'Falha ao seguir',
     'Unfollow failed': 'Falha ao deixar de seguir',
     'show new notes': 'Ver novas notas',
@@ -1147,9 +1156,6 @@ export default {
     Anonymous: 'Anônimo',
     'Anonymous reply hint':
       'Usa uma nova identidade Nostr descartável. Sua conta não aparecerá no evento, mas relays e observadores da rede ainda poderão correlacionar sua atividade.',
-    'One-time identity': 'Identidade descartável',
-    'Try loading more': 'Tentar carregar mais',
-    'Show less': 'Mostrar menos',
-    'Remember this difficulty': 'Lembrar desta dificuldade'
+    'One-time identity': 'Identidade descartável'
   }
 }

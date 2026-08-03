@@ -52,18 +52,9 @@ export default function AudioPlayer({
       }
     }
     const updateDuration = () => setDuration(audio.duration)
-    const handleEnded = () => {
-      setIsPlaying(false)
-      mediaManager.registerPaused(audio)
-    }
-    const handlePause = () => {
-      setIsPlaying(false)
-      mediaManager.registerPaused(audio)
-    }
-    const handlePlay = () => {
-      setIsPlaying(true)
-      mediaManager.registerPlaying(audio)
-    }
+    const handleEnded = () => setIsPlaying(false)
+    const handlePause = () => setIsPlaying(false)
+    const handlePlay = () => setIsPlaying(true)
 
     audio.addEventListener('timeupdate', updateTime)
     audio.addEventListener('loadedmetadata', updateDuration)
@@ -77,7 +68,6 @@ export default function AudioPlayer({
       audio.removeEventListener('ended', handleEnded)
       audio.removeEventListener('pause', handlePause)
       audio.removeEventListener('play', handlePlay)
-      mediaManager.pause(audio)
     }
   }, [])
 
@@ -90,7 +80,7 @@ export default function AudioPlayer({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) {
-          mediaManager.pause(audio)
+          audio.pause()
         }
       },
       { threshold: 1 }
@@ -108,11 +98,12 @@ export default function AudioPlayer({
     if (!audio) return
 
     if (isPlaying) {
-      mediaManager.pause(audio)
+      audio.pause()
       setIsPlaying(false)
     } else {
-      mediaManager.play(audio)
+      audio.play()
       setIsPlaying(true)
+      mediaManager.play(audio)
     }
   }
 
@@ -141,7 +132,7 @@ export default function AudioPlayer({
     <div
       ref={containerRef}
       className={cn(
-        'bg-background flex max-w-md items-center gap-3 rounded-full border px-2 py-2',
+        'flex max-w-md items-center gap-3 rounded-full border bg-background px-2 py-2',
         className
       )}
       onClick={(e) => e.stopPropagation()}
@@ -171,14 +162,14 @@ export default function AudioPlayer({
         />
       </div>
 
-      <div className="text-muted-foreground font-mono text-sm">
+      <div className="font-mono text-sm text-muted-foreground">
         {formatTime(Math.max(duration - currentTime, 0))}
       </div>
       {isMinimized ? (
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground shrink-0 rounded-full"
+          className="shrink-0 rounded-full text-muted-foreground"
           onClick={() => mediaManager.stopAudioBackground()}
         >
           <X />
@@ -187,7 +178,7 @@ export default function AudioPlayer({
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground shrink-0 rounded-full"
+          className="shrink-0 rounded-full text-muted-foreground"
           onClick={() =>
             mediaManager.playAudioBackground(src, audioRef.current?.currentTime || 0, pubkey)
           }

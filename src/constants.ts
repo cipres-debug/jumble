@@ -17,7 +17,6 @@ export const StorageKey = {
   ACCOUNTS: 'accounts',
   CURRENT_ACCOUNT: 'currentAccount',
   ADD_CLIENT_TAG: 'addClientTag',
-  DEFAULT_MIN_POW: 'defaultMinPow',
   NOTIFICATION_TYPE: 'notificationType',
   DEFAULT_ZAP_SATS: 'defaultZapSats',
   DEFAULT_ZAP_COMMENT: 'defaultZapComment',
@@ -88,10 +87,10 @@ export const ApplicationDataKey = {
 }
 
 export const BIG_RELAY_URLS = [
+  'wss://relay.damus.io/',
   'wss://nos.lol/',
   'wss://relay.primal.net/',
-  'wss://offchain.pub/',
-  'wss://relay.ditto.pub/'
+  'wss://offchain.pub/'
 ]
 
 export const SEARCHABLE_RELAY_URLS = [
@@ -156,10 +155,7 @@ export const SUPPORTED_KINDS = [
   ExtendedKind.FOLLOW_PACK,
   kinds.Reaction,
   kinds.Zap,
-  ExtendedKind.EXTERNAL_CONTENT_REACTION,
-  kinds.CommunityDefinition,
-  kinds.LiveEvent,
-  ExtendedKind.GROUP_METADATA
+  ExtendedKind.EXTERNAL_CONTENT_REACTION
 ]
 
 export const DEFAULT_FEED_TABS: TFeedTabConfig[] = [
@@ -207,14 +203,14 @@ export const DEFAULT_NIP_96_SERVICE = 'https://nostr.build'
 export const DEFAULT_NOSTRCONNECT_RELAY = [
   'wss://bucket.coracle.social/',
   'wss://relay.primal.net/',
-  'wss://relay.ditto.pub/'
+  'wss://relay.damus.io/'
 ]
 
 export const DEFAULT_DM_RELAYS = [
   'wss://nip17.com/',
+  'wss://relay.damus.io/',
   'wss://nos.lol/',
-  'wss://relay.primal.net/',
-  'wss://offchain.pub/'
+  'wss://relay.primal.net/'
 ]
 
 export const DM_TIME_RANDOMIZATION_SECONDS = 2 * 24 * 60 * 60 // 2 days in seconds

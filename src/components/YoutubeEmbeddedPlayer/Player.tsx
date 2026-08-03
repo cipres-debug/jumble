@@ -103,12 +103,12 @@ const WebPlayer = memo(({ videoId, isShort, className }: PlayerProps) => {
               if (unmountedRef.current) return
 
               if (event.data === window.YT.PlayerState.PLAYING) {
-                mediaManager.registerPlaying(playerRef.current)
+                mediaManager.play(playerRef.current)
               } else if (
                 event.data === window.YT.PlayerState.PAUSED ||
                 event.data === window.YT.PlayerState.ENDED
               ) {
-                mediaManager.registerPaused(playerRef.current)
+                mediaManager.pause(playerRef.current)
               }
             },
             onReady: () => {
@@ -165,7 +165,6 @@ const WebPlayer = memo(({ videoId, isShort, className }: PlayerProps) => {
       }
       if (playerRef.current) {
         try {
-          mediaManager.registerPaused(playerRef.current)
           playerRef.current.destroy()
         } catch {
           // Ignore errors during cleanup
@@ -305,12 +304,12 @@ const ElectronPlayer = memo(({ videoId, isShort, className }: PlayerProps) => {
           const newState = data.state ?? YT_PLAYER_STATE.UNSTARTED
           stateRef.current = newState
           if (newState === window.YT.PlayerState.PLAYING) {
-            mediaManager.registerPlaying(proxy)
+            mediaManager.play(proxy)
           } else if (
             newState === window.YT.PlayerState.PAUSED ||
             newState === window.YT.PlayerState.ENDED
           ) {
-            mediaManager.registerPaused(proxy)
+            mediaManager.pause(proxy)
           }
           break
         }
@@ -334,7 +333,6 @@ const ElectronPlayer = memo(({ videoId, isShort, className }: PlayerProps) => {
       unmountedRef.current = true
       window.removeEventListener('message', onMessage)
       try {
-        mediaManager.registerPaused(proxy)
         post('destroy')
       } catch {
         // Ignore — iframe may already be torn down

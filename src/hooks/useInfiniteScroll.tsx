@@ -6,11 +6,6 @@ export interface UseInfiniteScrollOptions<T> {
    */
   items: T[]
   /**
-   * Number of items from the start of the array that are currently eligible
-   * for display. Defaults to the full array length.
-   */
-  itemCount?: number
-  /**
    * Whether to initially show all items or use pagination
    * @default false
    */
@@ -37,7 +32,6 @@ export interface UseInfiniteScrollOptions<T> {
 
 export function useInfiniteScroll<T>({
   items,
-  itemCount,
   showAllInitially = false,
   showCount: initialShowCount = 10,
   onLoadMore,
@@ -48,7 +42,6 @@ export function useInfiniteScroll<T>({
     threshold: 0
   }
 }: UseInfiniteScrollOptions<T>) {
-  const effectiveItemCount = itemCount ?? items.length
   const [hasMore, setHasMore] = useState(true)
   const [showCount, setShowCount] = useState(showAllInitially ? Infinity : initialShowCount)
   const [loading, setLoading] = useState(false)
@@ -57,7 +50,7 @@ export function useInfiniteScroll<T>({
     loading,
     hasMore,
     showCount,
-    itemsLength: effectiveItemCount,
+    itemsLength: items.length,
     initialLoading
   })
 
@@ -65,33 +58,12 @@ export function useInfiniteScroll<T>({
     loading,
     hasMore,
     showCount,
-    itemsLength: effectiveItemCount,
+    itemsLength: items.length,
     initialLoading
   }
 
-  const fetchMore = useCallback(async () => {
-    const { loading, initialLoading } = stateRef.current
-
-    if (initialLoading || loading) return
-
-    stateRef.current.loading = true
-    setLoading(true)
-    try {
-      const newHasMore = await onLoadMore()
-      stateRef.current.hasMore = newHasMore
-      setHasMore(newHasMore)
-    } catch (error) {
-      console.error('Failed to load more items:', error)
-      stateRef.current.hasMore = false
-      setHasMore(false)
-    } finally {
-      stateRef.current.loading = false
-      setLoading(false)
-    }
-  }, [onLoadMore])
-
   const loadMore = useCallback(async () => {
-    const { hasMore, showCount, itemsLength } = stateRef.current
+    const { loading, hasMore, showCount, itemsLength, initialLoading } = stateRef.current
 
     // If there are more items to show, increase showCount first
     if (showCount < itemsLength) {
@@ -102,13 +74,14 @@ export function useInfiniteScroll<T>({
       }
     }
 
-    if (!hasMore) return
-    await fetchMore()
-  }, [fetchMore, initialShowCount])
+    if (initialLoading || loading) return
 
-  const retryLoadMore = useCallback(async () => {
-    await fetchMore()
-  }, [fetchMore])
+    if (!hasMore) return
+    setLoading(true)
+    const newHasMore = await onLoadMore()
+    setHasMore(newHasMore)
+    setLoading(false)
+  }, [onLoadMore, initialShowCount])
 
   // IntersectionObserver setup
   useEffect(() => {
@@ -129,13 +102,10 @@ export function useInfiniteScroll<T>({
   }, [loadMore, observerOptions])
 
   const visibleItems = useMemo(() => {
-    return items.slice(
-      0,
-      showAllInitially ? effectiveItemCount : Math.min(showCount, effectiveItemCount)
-    )
-  }, [items, effectiveItemCount, showAllInitially, showCount])
+    return showAllInitially ? items : items.slice(0, showCount)
+  }, [items, showAllInitially, showCount])
 
-  const shouldShowLoadingIndicator = hasMore || showCount < effectiveItemCount || loading
+  const shouldShowLoadingIndicator = hasMore || showCount < items.length || loading
 
   return {
     visibleItems,
@@ -143,7 +113,6 @@ export function useInfiniteScroll<T>({
     hasMore,
     shouldShowLoadingIndicator,
     bottomRef,
-    retryLoadMore,
     setHasMore,
     setLoading,
     setShowCount

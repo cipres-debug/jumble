@@ -1127,9 +1127,6 @@ export default {
     Anonymous: 'مجهول',
     'Anonymous reply hint':
       'يستخدم هوية Nostr جديدة لمرة واحدة. لن يظهر حسابك في الحدث، لكن قد تظل المرحّلات ومراقبو الشبكة قادرين على ربط نشاطك.',
-    'One-time identity': 'هوية لمرة واحدة',
-    'Try loading more': 'محاولة تحميل المزيد',
-    'Show less': 'عرض أقل',
-    'Remember this difficulty': 'تذكّر مستوى الصعوبة هذا'
+    'One-time identity': 'هوية لمرة واحدة'
   }
 }
